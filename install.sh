@@ -31,7 +31,7 @@ PACKAGES=" $PACKAGES nextcloud-desktop tmux"                              # next
 PACKAGES=" $PACKAGES adwaita-fonts inter-fonts inter-variable-fonts google-noto-coloremoji-fonts" # fonts
 PACKAGES=" $PACKAGES btop ncdu"                                           # other tweaks
 PACKAGES=" $PACKAGES blueman"                                             # bluetooth utils
-PACKAGES=" $PACKAGES tar wget unzip xz bat"                               # other utils
+PACKAGES=" $PACKAGES tar wget unzip xz bat plymouth"                      # other utils
 
 ######################
 # Making sure the user running has root privileges
@@ -103,6 +103,12 @@ sed -i 's/^command.*/command = "tuigreet --cmd \x27dbus-run-session labwc\x27"/'
 
 systemctl enable greetd.service
 systemctl set-default graphical.target
+
+######################
+# Installing basic fonts
+######################
+logMe "Installing basic fonts"
+zypper install -y --type pattern fonts 
 
 ######################
 # Installing nerdfonts
