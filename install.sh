@@ -8,6 +8,7 @@
 ######################
 USERDIR=$(echo "/home/$SUDO_USER")
 TOOLSDIR=$(echo "$USERDIR/_tools")
+SCRIPTDIR=$(dirname "$0")
 
 ######################
 # Packages
@@ -45,16 +46,6 @@ if [[ -z "$SUDO_USER" ]]; then
   exit
 fi
 
-checkExit() {
-    if [ $? -eq 1 ]; then 
-        echo "-----------------------------------"
-        echo "-----------------------------------"
-        echo "ERROR: failed step: $1"
-        read -p "click to continue"; 
-        exit
-    fi
-}
-
 ######################
 # Output function
 ######################
@@ -77,7 +68,6 @@ function logError {
 logMe "Creating necessary folders"
 mkdir -p $TOOLSDIR
 mkdir -p $USERDIR/.config
-mkdir -p $USERDIR/.themes/
 cd $TOOLSDIR
 
 ######################
@@ -96,8 +86,7 @@ echo "XDG_RUNTIME_DIR=/run/user/$(id -u)" >> $USERDIR/.pam_environment
 # Installing necessary packages
 ######################
 logMe "Installing necessary packages via zypper"
-sudo zypper install -y $PACKAGES > /dev/null 2>&1
-checkExit "Installing packages"
+sudo zypper install -y $PACKAGES > /dev/null
 
 ######################
 # Installing flathub and flatpaks
@@ -105,11 +94,6 @@ checkExit "Installing packages"
 logMe "Installing Flathub"
 flatpak install flathub org.keepassxc.KeePassXC -y
 flatpak install flathub com.visualstudio.code -y
-
-######################
-# recursively fix ownership for .config directory
-######################
-chown -R $SUDO_USER:$SUDO_USER $USERDIR
 
 ######################
 # enabling greetd at start and switching target to graphical
@@ -123,10 +107,8 @@ systemctl set-default graphical.target
 ######################
 # Installing nerdfonts
 ######################
-
-mkdir -p "$USERDIR/.local/share/fonts/"
-
 logMe "Installing nerdfonts SauceCodePro"
+mkdir -p "$USERDIR/.local/share/fonts/"
 TEMP_DIR=$(mktemp -d)
 wget -O "$TEMP_DIR/font.zip" "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/SourceCodePro.zip"
 unzip "$TEMP_DIR/font.zip" -d "$TEMP_DIR"
@@ -146,6 +128,7 @@ fc-cache -f -v
 ######################
 # Installing gtk-adw theme
 ######################
+logMe "Installing gtk-adw theme"
 TEMP_DIR=$(mktemp -d)
 cd $TEMP_DIR
 wget https://github.com/lassekongo83/adw-gtk3/releases/download/v6.4/adw-gtk3v6.4.tar.xz
@@ -160,14 +143,28 @@ sudo flatpak mask org.gtk.Gtk3theme.adw-gtk3
 sudo flatpak mask org.gtk.Gtk3theme.adw-gtk3-dark
 
 ######################
+# recursively fix ownership for .config directory
+######################
+chown -R $SUDO_USER:$SUDO_USER $USERDIR
+
+######################
 # Download and apply config files
 ######################
-logMe "applying config files"
+logMe "Applying config files"
 cd $TOOLSDIR
 git clone https://github.com/lucapxl/dotconfig.git
 cd dotconfig
 chown -R $SUDO_USER:$SUDO_USER .
 sudo -u $SUDO_USER bash apply_configs.sh
+
+######################
+# Enabling NetworkManager to group netadmin
+######################
+logMe "Creating netadmin and give it access to NetworkManager"
+groupadd netadmin
+usermod -aG netadmin $SUDO_USER
+cp "$SCRIPTDIR/10-network.rules" /etc/polkit-1/rules.d/
+chown root:root /etc/polkit-1/rules.d/10-network.rules
 
 ######################
 # all done, rebooting
