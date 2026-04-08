@@ -92,14 +92,14 @@ sudo zypper install -y $PACKAGES > /dev/null
 # Installing flathub and flatpaks
 ######################
 logMe "Installing Flathub"
-flatpak install flathub org.keepassxc.KeePassXC -y
-flatpak install flathub com.visualstudio.code -y
+flatpak install flathub org.keepassxc.KeePassXC -y > /dev/null
+flatpak install flathub com.visualstudio.code -y > /dev/null
 
 ######################
 # Installing basic fonts
 ######################
 logMe "Installing basic fonts"
-zypper install -y --type pattern fonts 
+zypper install -y --type pattern fonts > /dev/null
 
 ######################
 # Installing nerdfonts
@@ -182,4 +182,5 @@ echo  "session  optional       pam_gnome_keyring.so auto_start" >> /usr/lib/pam.
 # all done, rebooting
 ######################
 logMe "[DONE] Installation completed!"
+read -p "press any key to reboot\n" -s
 systemctl reboot
