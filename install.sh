@@ -16,7 +16,7 @@ SCRIPTDIR=$(dirname "$0")
 PACKAGES="firefox bash-completion vim neovim mousepad fastfetch"          # basic software
 PACKAGES=" $PACKAGES labwc"                                               # labwc
 PACKAGES=" $PACKAGES waybar swaylock wlogout wlopm swayidle"              # main wayland tools (bar, lock screen, logout menu, brightness manager, wallpaper manager)
-PACKAGES=" $PACKAGES dbus-1-daemon gnome-keyring"                         # keychain for KeePassXC, SSH keys and nextcloud
+PACKAGES=" $PACKAGES gnome-keyring gnome-keyring-pam"                     # keychain for KeePassXC, SSH keys and nextcloud
 PACKAGES=" $PACKAGES rofi rofi-calc"                                      # Menu for labwc
 PACKAGES=" $PACKAGES wdisplays kanshi brightnessctl gammastep"            # Graphical monitor manager and profile manager, brightness manager and gamma changer
 PACKAGES=" $PACKAGES dunst libnotify-tools playerctl"                     # Graphical Notification manager and Player buttons manager
@@ -96,15 +96,6 @@ flatpak install flathub org.keepassxc.KeePassXC -y
 flatpak install flathub com.visualstudio.code -y
 
 ######################
-# enabling greetd at start and switching target to graphical
-######################
-logMe "Configuring greetd/tuigreet login manager"
-sed -i 's/^command.*/command = "tuigreet --cmd \x27dbus-run-session labwc\x27"/' /etc/greetd/config.toml
-
-systemctl enable greetd.service
-systemctl set-default graphical.target
-
-######################
 # Installing basic fonts
 ######################
 logMe "Installing basic fonts"
@@ -169,8 +160,23 @@ sudo -u $SUDO_USER bash apply_configs.sh
 logMe "Creating netadmin and give it access to NetworkManager"
 groupadd netadmin
 usermod -aG netadmin $SUDO_USER
-cp "$SCRIPTDIR/10-network.rules" /etc/polkit-1/rules.d/
-chown root:root /etc/polkit-1/rules.d/10-network.rules
+sudo cat "$SCRIPTDIR/10-network.rules" > /etc/polkit-1/rules.d/10-network.rules
+
+######################
+# enabling greetd at start and switching target to graphical
+######################
+logMe "Configuring greetd/tuigreet login manager"
+sed -i 's/^command.*/command = "tuigreet --cmd labwc"/' /etc/greetd/config.toml
+
+systemctl enable greetd.service
+systemctl set-default graphical.target
+
+######################
+# enabling greetd at start and switching target to graphical
+######################
+logMe "Fixing gnome_keyring pam module for greetd"
+echo  "auth     optional       pam_gnome_keyring.so" >> /usr/lib/pam.d/greetd
+echo  "session  optional       pam_gnome_keyring.so auto_start" >> /usr/lib/pam.d/greetd
 
 ######################
 # all done, rebooting
