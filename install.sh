@@ -14,7 +14,7 @@ SCRIPTDIR=$(dirname "$0")
 # Packages
 ######################
 PACKAGES="firefox bash-completion vim neovim mousepad fastfetch"          # basic software
-PACKAGES=" $PACKAGES labwc"                                               # labwc
+PACKAGES=" $PACKAGES labwc uwsm"                                          # labwc
 PACKAGES=" $PACKAGES waybar swaylock wlogout wlopm swayidle"              # main wayland tools (bar, lock screen, logout menu, brightness manager, wallpaper manager)
 PACKAGES=" $PACKAGES gnome-keyring gnome-keyring-pam"                     # keychain for KeePassXC, SSH keys and nextcloud
 PACKAGES=" $PACKAGES rofi rofi-calc"                                      # Menu for labwc
@@ -166,7 +166,7 @@ sudo cat "$SCRIPTDIR/10-network.rules" > /etc/polkit-1/rules.d/10-network.rules
 # enabling greetd at start and switching target to graphical
 ######################
 logMe "Configuring greetd/tuigreet login manager"
-sed -i 's/^command.*/command = "tuigreet --cmd labwc"/' /etc/greetd/config.toml
+sed -i 's/^command.*/command = "tuigreet --cmd \'uwsm start labwc.desktop\'"/' /etc/greetd/config.toml
 
 systemctl enable greetd.service
 systemctl set-default graphical.target
