@@ -166,7 +166,10 @@ sudo cat "$SCRIPTDIR/10-network.rules" > /etc/polkit-1/rules.d/10-network.rules
 # enabling greetd at start and switching target to graphical
 ######################
 logMe "Configuring greetd/tuigreet login manager"
-sed -i 's/^command.*/command = "tuigreet --cmd \'uwsm start labwc.desktop\'"/' /etc/greetd/config.toml
+sudo sed -i "s/^command.*/command = \"tuigreet --cmd 'uwsm start labwc.desktop'\"/" /etc/greetd/config.toml
+
+# add use to video group to allow brightness control and other video related features
+usermod -aG video $SUDO_USER
 
 systemctl enable greetd.service
 systemctl set-default graphical.target
